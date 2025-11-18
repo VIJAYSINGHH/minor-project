@@ -1,0 +1,172 @@
+#include <stdio.h>
+#include <string.h>
+
+#define FILE_NAME "weather_data.txt"
+#define MAX 200
+
+struct Weather {
+    char date[12];
+    float temp;
+    float humidity;
+    float comfort;
+    char status[20];
+};
+
+void showMenu();
+void addEntry(struct Weather arr[], int *n);
+void viewEntries(struct Weather arr[], int n);
+void searchEntry(struct Weather arr[], int n);
+void loadFile(struct Weather arr[], int *n);
+void saveFile(struct Weather arr[], int n);
+
+
+int main() {
+    struct Weather data[MAX];
+    int count = 0;
+    int choice;
+
+    loadFile(data, &count);
+
+    while (1) {
+        showMenu();
+        printf("Enter choice: ");
+        if((scanf("%d", &choice))!= 1){
+            return 0;
+        }
+
+        if (choice == 1)
+            addEntry(data, &count);
+
+        else if (choice == 2)
+            viewEntries(data, count);
+
+        else if (choice == 3)
+            searchEntry(data, count);
+
+        else if (choice == 4) {
+            saveFile(data, count);
+            printf("Program closed.\n");
+            break;
+        }
+        else
+            printf("Invalid. Try again.\n");
+    }
+
+    return 0;
+}
+
+void showMenu() {
+    printf("\n===============================\n");
+    printf("       WEATHER LOG SYSTEM\n");
+    printf("===============================\n");
+    printf("1. Add Weather \n");
+    printf("2. View All Weather \n");
+    printf("3. Search Weather By Date \n");
+    printf("4. Exit \n");
+    printf("===============================\n");
+}
+
+void loadFile(struct Weather arr[], int *n) {
+    FILE *fp = fopen(FILE_NAME, "r");
+    if (fp == NULL) return;
+
+    while (fscanf(fp, "%s %f %f %f %s",
+           arr[*n].date,
+           &arr[*n].temp,
+           &arr[*n].humidity,
+           &arr[*n].comfort,
+           arr[*n].status) != EOF)
+    {
+        (*n)++;
+    }
+
+    fclose(fp);
+}
+
+void saveFile(struct Weather arr[], int n) {
+    FILE *fp = fopen(FILE_NAME, "w");
+
+    for (int i = 0; i < n; i++) {
+        fprintf(fp, "%s %.2f %.2f %.2f %s\n",
+            arr[i].date,
+            arr[i].temp,
+            arr[i].humidity,
+            arr[i].comfort,
+            arr[i].status);
+    }
+
+    fclose(fp);
+}
+
+
+void addEntry(struct Weather arr[], int *n) {
+    printf("Enter date (dd/mm/yyyy): ");
+    if (scanf("%s", arr[*n].date) != 1) {
+        printf("!Please enter valid input!");
+            }
+
+    printf("Enter temperature (°C): ");
+    if (scanf("%f", &arr[*n].temp) != 1) {
+        printf("!Please enter valid input!");
+      
+    }
+
+    printf("Enter humidity (%%): ");
+    if (scanf("%f", &arr[*n].humidity) != 1) {
+        printf("!Please enter valid input!");
+       
+    }
+    arr[*n].comfort = arr[*n].temp * 0.7 + arr[*n].humidity * 0.3;
+
+    
+    if (arr[*n].comfort >= 32)
+        strcpy(arr[*n].status, "VeryHot");
+    else if (arr[*n].comfort >= 25)
+        strcpy(arr[*n].status, "Hot");
+    else if (arr[*n].comfort >= 18)
+        strcpy(arr[*n].status, "Comfort");
+    else
+        strcpy(arr[*n].status, "Cold");
+
+    (*n)++;
+
+    printf("Weather added!\n");
+}
+
+
+void viewEntries(struct Weather arr[], int n) {
+    if (n == 0) {
+        printf("No weather records.\n");
+        return;
+    }
+
+    printf("\n======= WEATHER HISTORY =======\n");
+
+    for (int i = 0; i < n; i++) {
+        printf("\nDate      : %s", arr[i].date);
+        printf("\nTemp      : %.2f", arr[i].temp);
+        printf("\nHumidity  : %.2f", arr[i].humidity);
+        printf("\nComfort   : %.2f", arr[i].comfort);
+        printf("\nStatus    : %s\n", arr[i].status);
+        printf("-----------------------------------\n");
+    }
+}
+
+void searchEntry(struct Weather arr[], int n) {
+    char d[12];
+    printf("Enter date to search: ");
+    scanf("%s", d);
+
+    for (int i = 0; i < n; i++) {
+        if (strcmp(arr[i].date, d) == 0) {
+            printf("\n=== WEATHER ON %s ===\n", d);
+            printf("Temp     : %.2f\n", arr[i].temp);
+            printf("Humidity : %.2f\n", arr[i].humidity);
+            printf("Comfort  : %.2f\n", arr[i].comfort);
+            printf("Status   : %s\n", arr[i].status);
+            return;
+        }
+    }
+
+    printf("No record found.\n");
+}
